@@ -1,0 +1,101 @@
+// Prisma schema for QuereIA backend
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum CardType {
+  irregularidad_procesal
+  contradiccion
+  cadena_custodia
+  viogen
+  otro
+}
+
+enum CardStatus {
+  verificado
+  pendiente
+  hipotesis
+}
+
+enum DocumentMode {
+  draft
+  final
+}
+
+enum DocumentStatus {
+  generated
+  cached
+  failed
+}
+
+model Card {
+  id           String     @id
+  titulo       String
+  tipo         CardType
+  estado       CardStatus
+  hecho        String
+  impacto      String
+  peticion     String?
+  tags         String[]
+  prioridad    Int
+  dependencias String[]
+  conflictos   String[]
+  evidencias   Evidence[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model Evidence {
+  id          String   @id @default(uuid())
+  documento   String
+  paginaFolio String
+  citaLiteral String?
+  quoteId     String?
+  cardId      String
+  card        Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+}
+
+model PromptVersion {
+  id          String            @id @default(uuid())
+  name        String
+  content     String
+  isActive    Boolean           @default(false)
+  createdAt   DateTime          @default(now())
+  documents   DocumentVersion[]
+}
+
+model DocumentVersion {
+  id              String         @id @default(uuid())
+  createdAt       DateTime       @default(now())
+  promptVersionId String
+  promptVersion   PromptVersion  @relation(fields: [promptVersionId], references: [id])
+  model           String
+  temperature     Float
+  maxOutputTokens Int
+  snapshotHash    String
+  snapshotJson    Json
+  astJson         Json
+  renderedPreview String
+  warnings        Json
+  mode            DocumentMode
+  status          DocumentStatus @default(generated)
+  cachedFromId    String?
+  pseudonymMap    PseudonymMap?
+
+  @@index([snapshotHash])
+}
+
+model PseudonymMap {
+  id                String          @id @default(uuid())
+  documentVersionId String          @unique
+  documentVersion   DocumentVersion @relation(fields: [documentVersionId], references: [id], onDelete: Cascade)
+  encryptedMap      String
+  createdAt         DateTime        @default(now())
+}

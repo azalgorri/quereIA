@@ -1,0 +1,4 @@
+Estilo: redacción sobria, frases cortas, voz impersonal.
+Convención de citas: "(Documento: {documento}, Folio/Página: {pagina_folio})".
+Orden en HECHOS: por prioridad descendente y luego por tipo.
+Formato de encabezados: MAYÚSCULAS.
